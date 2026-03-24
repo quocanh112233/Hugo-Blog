@@ -1,0 +1,130 @@
+{{ if .Params.id }}
+<div class="comments-section" style="margin-top: 50px; border-top: 1px solid var(--border); padding-top: 20px;">
+    <h3>Bình luận</h3>
+
+    <div id="comments-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
+        <p style="color: gray;">Đang tải bình luận</p>
+    </div>
+
+    <div id="comment-form-container" style="display: none;">
+        <textarea id="comment-input" rows="3" placeholder="Viết bình luận của bạn..."
+            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--entry); color: var(--primary); margin-bottom: 10px; font-family: inherit; resize: vertical;"></textarea>
+        <button id="submit-comment"
+            style="padding: 10px 20px; background: var(--primary); color: var(--theme); border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            Gửi bình luận
+        </button>
+    </div>
+
+    <p id="login-prompt" style="font-style: italic; color: gray;">
+        Vui lòng <a href="#" id="login-to-comment" style="text-decoration: underline; color: var(--primary);">đăng
+            nhập</a> để có thể bình luận.
+    </p>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // lấy ID bài viết từ Hugo
+        const postId = "{{ .Params.id }}";
+
+        const commentsList = document.getElementById('comments-list');
+        const formContainer = document.getElementById('comment-form-container');
+        const loginPrompt = document.getElementById('login-prompt');
+        const submitBtn = document.getElementById('submit-comment');
+        const commentInput = document.getElementById('comment-input');
+        const loginLink = document.getElementById('login-to-comment');
+
+        // tải và hiển thị bình luận
+        async function loadComments() {
+            const { data, error } = await window.supabaseClient
+                .from('comments')
+                .select('*')
+                .eq('post_id', postId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                commentsList.innerHTML = '<p style="color:red;">Lỗi tải bình luận: ' + error.message + '</p>';
+                return;
+            }
+
+            if (data.length === 0) {
+                commentsList.innerHTML = '<p style="font-style: italic; color: gray;">Chưa có bình luận nào. Hãy là người đầu tiên!</p>';
+            } else {
+                commentsList.innerHTML = data.map(c => `
+                    <div style="background: var(--entry); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <img src="${c.user_avatar || 'https://www.gravatar.com/avatar/?d=mp'}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%;">
+                            <strong style="color: var(--primary);">${c.user_name}</strong>
+                            <span style="font-size: 0.85em; color: gray;">${new Date(c.created_at).toLocaleString('vi-VN')}</span>
+                        </div>
+                        <div style="line-height: 1.5; color: var(--primary);">${c.content}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // kiểm tra trạng thái đăng nhập
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+
+        if (session) {
+            // hiển thị form
+            formContainer.style.display = 'block';
+            loginPrompt.style.display = 'none';
+        } else {
+            // xử lý nút click đăng nhập cho người dùng chưa auth
+            loginLink.onclick = async (e) => {
+                e.preventDefault();
+                await window.supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.href }
+                });
+            };
+        }
+
+        // xử lý sự kiện bấm gửi bình luận
+        submitBtn.onclick = async () => {
+            const content = commentInput.value.trim();
+            if (!content) return;
+
+            submitBtn.textContent = 'Đang gửi';
+            submitBtn.disabled = true;
+
+            const user = session.user;
+            const userName = user.user_metadata.full_name || user.email;
+            const userAvatar = user.user_metadata.avatar_url || '';
+
+            // gửi dữ liệu lên Supabase
+            const { error } = await window.supabaseClient
+                .from('comments')
+                .insert([{
+                    post_id: postId,
+                    user_id: user.id,
+                    user_name: userName,
+                    user_avatar: userAvatar,
+                    content: content
+                }]);
+
+            // trả lại trạng thái nút
+            submitBtn.textContent = 'Gửi bình luận';
+            submitBtn.disabled = false;
+
+            if (error) {
+                alert('Lỗi khi gửi bình luận: ' + error.message);
+            } else {
+                commentInput.value = '';
+                loadComments();
+            }
+        };
+
+        // chạy hàm tải bình luận ngay khi mở trang
+        loadComments();
+
+        // tự động tải lại bình luận nếu có người khác comment cùng lúc
+        window.supabaseClient
+            .channel('public:comments')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments', filter: 'post_id=eq.' + postId }, payload => {
+                loadComments();
+            })
+            .subscribe();
+    });
+</script>
+{{ end }}

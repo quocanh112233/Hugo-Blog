@@ -1,0 +1,30 @@
+baseURL = 'https://example.org/'
+languageCode = 'vi-VN'
+title = 'Hugo Blog'
+theme = 'PaperMod'
+
+[params]
+  defaultTheme = "auto"
+  ShowReadingTime = true
+  ShowShareButtons = true
+  ShowPostNavLinks = true
+  disableSpecial1stPost = true
+  comments = true
+
+[[menu.main]]
+    identifier = "auth-btn"
+    name = "Đăng nhập"
+    url = "/dang-nhap"
+    weight = 100
+
+[[menu.main]]
+    identifier = "create-post"
+    name = "Viết bài"
+    url = "/tao-bai-viet/"
+    weight = 90
+
+[[menu.main]]
+    identifier = ""
+    name = "Trang chủ"
+    url = "/"
+    weight = 80

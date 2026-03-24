@@ -1,0 +1,69 @@
+{{ define "main" }}
+<header class="page-header">
+    <h1>{{ .Title }}</h1>
+</header>
+
+<div class="post-content">
+    <form id="post-form" style="display: flex; flex-direction: column; gap: 15px;">
+        <input type="text" id="post-title" placeholder="Nhập tiêu đề bài viết..." required
+            style="padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--entry); color: var(--primary); font-size: 16px;">
+
+        <textarea id="post-content" placeholder="Nội dung bài viết (Hỗ trợ định dạng Markdown)..." rows="12" required
+            style="padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--entry); color: var(--primary); font-size: 16px; resize: vertical;"></textarea>
+
+        <button type="submit"
+            style="padding: 12px; background: var(--primary); color: var(--theme); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+            Đăng Bài
+        </button>
+    </form>
+    <p id="post-message" style="margin-top: 20px; font-weight: bold; text-align: center;"></p>
+</div>
+
+<script>
+    document.getElementById('post-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('post-title').value;
+        const content = document.getElementById('post-content').value;
+        const msgEl = document.getElementById('post-message');
+
+        msgEl.textContent = "Đang tải dữ liệu lên hệ thống...";
+        msgEl.style.color = "var(--primary)";
+
+        // kiểm tra session đăng nhập
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (!session) {
+            msgEl.textContent = "Lỗi: Bạn cần đăng nhập để viết bài!";
+            msgEl.style.color = "red";
+            return;
+        }
+
+        const user = session.user;
+        const userName = user.user_metadata.full_name || user.email;
+        const userAvatar = user.user_metadata.avatar_url || '';
+
+        // trả dữ liệu vào bảng posts
+        const { error } = await window.supabaseClient
+            .from('posts')
+            .insert([{
+                title: title,
+                content: content,
+                author_id: user.id,
+                author_name: userName,
+                author_avatar: userAvatar
+            }]);
+
+        if (error) {
+            msgEl.textContent = "Lỗi: " + error.message;
+            msgEl.style.color = "red";
+        } else {
+            msgEl.textContent = "Đăng bài thành công";
+            msgEl.style.color = "green";
+            document.getElementById('post-form').reset();
+
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 2000);
+        }
+    });
+</script>
+{{ end }}
