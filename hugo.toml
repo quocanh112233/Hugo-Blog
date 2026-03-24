@@ -11,6 +11,10 @@ theme = 'PaperMod'
   disableSpecial1stPost = true
   comments = true
 
+[security]
+  [security.funcs]
+    getenv = ['^HUGO_', '^CI$', '^SUPABASE_']
+
 [[menu.main]]
     identifier = "auth-btn"
     name = "Đăng nhập"
