@@ -1,9 +1,6 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-    const _SUPABASE_URL = 'https://favhffvfzojsmpkukhhu.supabase.co';
-    const _SUPABASE_ANON_KEY = 'sb_publishable__xdFHs1WmqLDDBSH3IO56A_yTtvod-E';
+    const _SUPABASE_URL = '{{ getenv "SUPABASE_URL" }}';
+    const _SUPABASE_ANON_KEY = '{{ getenv "SUPABASE_ANON_KEY" }}';
+
     window.supabaseClient = supabase.createClient(_SUPABASE_URL, _SUPABASE_ANON_KEY);
 </script>
-
-<script src="/js/auth.js" defer></script>

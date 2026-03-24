@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-const SUPABASE_URL = 'https://favhffvfzojsmpkukhhu.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable__xdFHs1WmqLDDBSH3IO56A_yTtvod-E';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function generateHugoPosts() {
