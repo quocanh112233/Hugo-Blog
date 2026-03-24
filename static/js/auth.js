@@ -1,23 +1,22 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const authBtn = document.querySelector('a[href*="dang-nhap"]');
-    const createPostBtn = document.querySelector('a[href*="tao-bai-viet"]');
-
-    if (!authBtn) {
-        console.log("Không tìm thấy nút đăng nhập!");
+    // kiểm tra xem biến 
+    if (typeof supabaseClient === 'undefined') {
+        console.error("Lỗi: supabaseClient chưa được khởi tạo!");
         return;
     }
 
-    // lấy thông tin phiên đăng nhập
+    const authBtn = document.querySelector('a[href*="dang-nhap"]');
+    const createPostBtn = document.querySelector('a[href*="tao-bai-viet"]');
+
+    if (!authBtn) return;
+
     const { data: { session } } = await window.supabaseClient.auth.getSession();
 
     if (session) {
         const user = session.user;
         const userName = user.user_metadata.full_name || user.email;
-
-        authBtn.style.whiteSpace = "nowrap";
-        authBtn.innerHTML = `<span>Đăng xuất</span>`;
-
-        if (createPostBtn) createPostBtn.style.display = '';
+        authBtn.innerHTML = `<span>Đăng xuất (${userName})</span>`;
+        if (createPostBtn) createPostBtn.style.display = 'inline-block';
 
         authBtn.addEventListener('click', async (e) => {
             e.preventDefault();
