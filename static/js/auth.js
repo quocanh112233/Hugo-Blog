@@ -14,10 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await window.supabaseClient.auth.getSession();
 
     if (session) {
-        const user = session.user;
-        const userName = user.user_metadata.full_name || user.email;
 
-        authBtn.innerHTML = `<span>Đăng xuất (${userName})</span>`;
+        authBtn.innerHTML = `<span>Đăng xuất</span>`;
 
         if (createPostBtn) {
             createPostBtn.style.setProperty('display', 'inline-block', 'important');
