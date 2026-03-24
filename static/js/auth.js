@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // kiểm tra xem biến 
-    if (typeof supabaseClient === 'undefined') {
+    // kiểm tra khởi tạo
+    if (typeof window.supabaseClient === 'undefined') {
         console.error("Lỗi: supabaseClient chưa được khởi tạo!");
         return;
     }
@@ -10,11 +10,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!authBtn) return;
 
+    // lấy session
     const { data: { session } } = await window.supabaseClient.auth.getSession();
 
     if (session) {
-        authBtn.innerHTML = `<span>Đăng xuất</span>`;
-        if (createPostBtn) createPostBtn.style.display = 'inline-block';
+        const user = session.user;
+        const userName = user.user_metadata.full_name || user.email;
+
+        authBtn.innerHTML = `<span>Đăng xuất (${userName})</span>`;
+
+        if (createPostBtn) {
+            createPostBtn.style.setProperty('display', 'inline-block', 'important');
+        }
 
         authBtn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -22,11 +29,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.reload();
         });
     } else {
-        if (createPostBtn) createPostBtn.style.display = 'none';
+        if (createPostBtn) {
+            createPostBtn.style.setProperty('display', 'none', 'important');
+        }
 
         authBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+            const { error } = await window.supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin
