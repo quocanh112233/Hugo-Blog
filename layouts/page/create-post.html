@@ -11,29 +11,35 @@
         <textarea id="post-content" placeholder="Nội dung bài viết (Hỗ trợ định dạng Markdown)..." rows="12" required
             style="padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--entry); color: var(--primary); font-size: 16px; resize: vertical;"></textarea>
 
-        <button type="submit"
+        <button id="submit-btn" type="submit"
             style="padding: 12px; background: var(--primary); color: var(--theme); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
             Đăng Bài
         </button>
     </form>
-    <p id="post-message" style="margin-top: 20px; font-weight: bold; text-align: center;"></p>
+    <p id="post-message" style="margin-top: 20px; font-weight: bold; text-align: center; line-height: 1.5;"></p>
 </div>
 
 <script>
     document.getElementById('post-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
         const msgEl = document.getElementById('post-message');
+        const submitBtn = document.getElementById('submit-btn');
 
-        msgEl.textContent = "Đang tải dữ liệu lên hệ thống...";
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Đang xử lý";
+        msgEl.textContent = "Đang tải dữ liệu";
         msgEl.style.color = "var(--primary)";
 
         // kiểm tra session đăng nhập
         const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) {
-            msgEl.textContent = "Lỗi: Bạn cần đăng nhập để viết bài!";
+            msgEl.textContent = "Lỗi: cần đăng nhập để viết bài!";
             msgEl.style.color = "red";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Đăng Bài";
             return;
         }
 
@@ -55,14 +61,21 @@
         if (error) {
             msgEl.textContent = "Lỗi: " + error.message;
             msgEl.style.color = "red";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Đăng Bài";
         } else {
-            msgEl.textContent = "Đăng bài thành công";
-            msgEl.style.color = "green";
+            msgEl.textContent = "Đăng bài thành công! Đang chờ cập nhật giao diện.";
+            msgEl.style.color = "#10b981";
             document.getElementById('post-form').reset();
 
             setTimeout(() => {
+                alert("Đăng bài thành công!\n\nĐang tự động tạo giao diện mới. Quá trình này sẽ mất khoảng 1-2 phút.\n\nNhấn OK để quay về trang chủ (hãy ấn F5 sau 1 phút nếu chưa thấy bài).");
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Đăng Bài";
+
                 window.location.href = "/";
-            }, 2000);
+            }, 100);
         }
     });
 </script>
