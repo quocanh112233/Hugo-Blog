@@ -64,18 +64,26 @@
             submitBtn.disabled = false;
             submitBtn.textContent = "Đăng Bài";
         } else {
-            msgEl.textContent = "Đăng bài thành công! Đang chờ cập nhật giao diện.";
-            msgEl.style.color = "#10b981";
-            document.getElementById('post-form').reset();
+            document.getElementById('post-form').style.display = 'none';
 
-            setTimeout(() => {
-                alert("Đăng bài thành công!\n\nĐang tự động tạo giao diện mới. Quá trình này sẽ mất khoảng 1-2 phút.\n\nNhấn OK để quay về trang chủ (hãy ấn F5 sau 1 phút nếu chưa thấy bài).");
+            msgEl.innerHTML = `
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 30px; border-radius: 8px; text-align: center;">
+                    <h2 style="color: #10b981; margin-top: 0; font-size: 24px;">Xuất bản thành công!</h2>
+                    <p style="color: var(--primary); font-size: 16px; margin-bottom: 20px;">Bài viết đã được lưu an toàn. Cloudflare đang tự động chạy nền để cập nhật trang chủ (sẽ mất khoảng 1-2 phút).</p>
+                    <p style="color: var(--secondary); font-size: 14px;">Tự động quay về trang chủ sau <strong id="countdown" style="color: var(--primary);">5</strong> giây...</p>
+                </div>
+            `;
 
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Đăng Bài";
-
-                window.location.href = "/";
-            }, 100);
+            let timeLeft = 5;
+            const countdownEl = document.getElementById('countdown');
+            const timer = setInterval(() => {
+                timeLeft -= 1;
+                countdownEl.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    window.location.href = "/";
+                }
+            }, 1000);
         }
     });
 </script>

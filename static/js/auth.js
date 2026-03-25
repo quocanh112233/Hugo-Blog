@@ -17,7 +17,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         authBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await window.supabaseClient.auth.signOut();
-            window.location.reload();
+
+            if (window.location.pathname.includes('/tao-bai-viet')) {
+                window.location.href = "/";
+            } else {
+                window.location.reload();
+            }
         });
 
     } else {
